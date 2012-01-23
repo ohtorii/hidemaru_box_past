@@ -1,0 +1,84 @@
+/*	BOX選された領域に貼り付ける、BOX選択選択されていなければ通常動作。
+
+【例１】
+	(前： |はbox選択)
+	f|oo
+	b|ar
+	h|oge
+	
+	(後： ---を貼り付ける)
+	f---oo
+	b---ar
+	h---oge
+
+
+【例２】
+	（前：|はbox選択）
+	application|
+	apple      |
+	append     |
+	
+	
+	（後：@hoge を貼り付ける）
+	application@hoge
+	apple      @hoge
+	append     @hoge
+
+*/
+
+call Main;
+endmacro;
+
+Main:
+	if(! anyclipboard){
+		return ;
+	}
+	if(rectselecting && (seltopx==selendx) && (seltopy!=selendy)){
+		//縦一列に選択
+		disabledraw;
+		begingroupundo;
+
+		call BoxPast;
+
+		endgroupundo;
+		enabledraw;
+	}else{
+		//通常動作
+		paste;
+	}
+	return ;
+	
+BoxPast:
+	##old_selendy = selendy;
+	##old_seltopx = seltopx;
+	##old_seltopy = seltopy;
+	
+	##cur_x = seltopx;
+	##cur_y = seltopy;
+	
+	escape;
+	while(##cur_y <= ##old_selendy){
+		moveto ##cur_x, ##cur_y;
+		
+		//足りない空白を挿入する
+		if((##cur_x!=x) && (linelen < ##cur_x)){
+			##n=##cur_x-linelen;
+			while(0<##n){
+				insert " ";
+				##n=##n-1;
+			}
+		}
+		moveto ##cur_x, ##cur_y;
+		
+		paste;
+		##cur_y = ##cur_y + 1;
+	}
+	
+	##cur_column = x;
+	moveto ##cur_column, ##old_seltopy;
+	beginrect;
+	moveto ##cur_column, ##old_selendy;
+	
+	
+	return ;
+	
